@@ -31,8 +31,10 @@ fn remove_node_modules(dir: &String) {
         for entry_result in paths {
             if let Ok(entry) = entry_result {
                 if entry.path().is_dir() && entry.path().ends_with("node_modules") {
-                    if fs::remove_dir(entry.path()).is_ok() {
-                        println!("Removed:{:?}", entry.path());
+                    let result = fs::remove_dir_all(entry.path());
+                    match result {
+                        Ok(_n) => println!("Removed:{:?}", entry.path()),
+                        Err(err) => println!("Error:{:?}", err)
                     }
                 }
             }
