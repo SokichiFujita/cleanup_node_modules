@@ -1,17 +1,41 @@
+// Remove node_modules from the child directories which is passed by CLI argument
+
 use std::fs;
+use std::env;
+use std::process;
 
 fn main() {
-    let dir = "./";
-    let mut paths = fs::read_dir(dir).unwrap();
+    let args: Vec<String> = env::args().collect();
+    match args.len() {
+        2 => search_child_dirs(&args[1]),
+        _ => process::exit(1)
+    }
+}
 
-    println!("Display files of {}", dir);
+fn search_child_dirs(dir: &String) {
+    if let Ok(paths) = fs::read_dir(dir) {
+        for entry_result in paths {
+            if let Ok(entry) = entry_result {
+                if entry.path().is_dir() {
+                    if let Ok(dirname) = entry.path().into_os_string().into_string() {
+                        remove_node_modules(&dirname)
+                    }
+                }
+            }
+        }
+    }
+}
 
-    loop {
-        match paths.next() {
-            Some(path) => {
-                println!("{:?}", path.unwrap().path());
-            },
-            None => { break }
+fn remove_node_modules(dir: &String) {
+    if let Ok(paths) = fs::read_dir(dir) {
+        for entry_result in paths {
+            if let Ok(entry) = entry_result {
+                if entry.path().is_dir() && entry.path().ends_with("node_modules") {
+                    if fs::remove_dir(entry.path()).is_ok() {
+                        println!("Removed:{:?}", entry.path());
+                    }
+                }
+            }
         }
     }
 }
